@@ -1,0 +1,12 @@
+FROM ubuntu:22.04
+RUN apt-get update && apt-get install -y nginx; \
+    useradd nginx; \
+    rm -rf /var/lib/apt/lists/*; \
+    chown -R nginx:nginx /home /etc/nginx /var/lib/nginx /var/log/nginx; \
+    touch /var/run/nginx.pid; \
+    chown nginx:nginx /var/run/nginx.pid
+COPY nginx/nginx_proxy.conf /etc/nginx/nginx.conf
+USER nginx
+WORKDIR /home/
+HEALTHCHECK --interval=1m --timeout=5s --retries=3 CMD curl -f http://localhost/ || exit 1
+CMD ["nginx","-g", "daemon off;"]

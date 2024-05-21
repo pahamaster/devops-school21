@@ -1,0 +1,52 @@
+stages:
+  - build
+  - test_style
+  - test_integration
+  - deploy
+
+ci_stage_build:
+  stage: build
+  tags:
+    - gitlab
+  script:
+    - mkdir -p build
+    - cd src/cat
+    - make && cp s21_cat ../../build/ && cd ../grep
+    - make && cp s21_grep ../../build/ && cd ..
+  artifacts:
+    paths:
+      - build/
+    expire_in: 30 day
+  after_script:
+    - bash src/notify.sh
+
+ci_stage_test_style:
+  stage: test_style
+  tags:
+    - gitlab
+  script:
+    - cd src/cat && make test_style
+    - cd ../grep && make test_style
+  after_script:
+    - bash src/notify.sh
+
+ci_stage_test_integration:
+  stage: test_integration
+  tags:
+    - gitlab
+  script:
+    - cd src/cat && make test
+    - cd ../grep && make test
+  after_script:
+    - bash src/notify.sh
+
+cd_stage_deploy:
+  stage: deploy
+  tags:
+    - gitlab
+  script:
+    - bash src/deploy.sh
+  when: manual
+  allow_failure: false
+  after_script:
+    - bash src/notify.sh
